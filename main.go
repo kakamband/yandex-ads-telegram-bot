@@ -107,7 +107,12 @@ func parseMainPage(document *html.Node) []item {
 	return res
 }
 
+func MainHandler(resp http.ResponseWriter, _ *http.Request) {
+	resp.Write([]byte("Hi there! I'm YandexAdsBot!"))
+}
+
 func main() {
+
 	bot, err := tgbotapi.NewBotAPI("1625195767:AAFeRBI_PRFaLHEpuBQRViXpu_zD7qYl8rA")
 	if err != nil {
 		log.Panic(err)
@@ -117,10 +122,13 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
+	http.HandleFunc("/", MainHandler)
+	go http.ListenAndServe(":8888", nil)
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 5
 
-	updates, err := bot.GetUpdatesChan(u)
+	updates := bot.ListenForWebhook("/" + bot.Token)
 
 	for update := range updates {
 		if update.Message == nil {
